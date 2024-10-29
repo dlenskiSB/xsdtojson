@@ -6,7 +6,10 @@ except ImportError: # for pip <= 9.0.3
 from setuptools import setup
 
 install_requirements = parse_requirements('./requirements.txt', session=False)
-requirements = [str(ir.req) for ir in install_requirements]
+try:
+    requirements = [str(ir.req) for ir in install_requirements]
+except AttributeError:
+    requirements = [str(ir.requirement) for ir in install_requirements]
 
 setup(
     name='xsdtojson',
@@ -16,6 +19,7 @@ setup(
     author_email='ben@benscott.co.uk',
     packages=['xsdtojson'],
     install_requires=requirements,
+    python_requires='>3.6',
     entry_points={
         'console_scripts': ['xsdtojson=xsdtojson.cli:main'],
     }

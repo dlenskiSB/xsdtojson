@@ -3,9 +3,8 @@
 """
 Created by Ben Scott on '25/01/2017'.
 """
-import simplejson as json
+import json
 from lxml import etree
-from collections import OrderedDict
 from distutils.util import strtobool
 
 
@@ -62,12 +61,12 @@ class XSDParser:
         # If this element has a name, add it to the schema tree
         elif element_name:
             # Create properties dict if it doesn't already exist
-            schema.setdefault('properties', OrderedDict())
+            schema.setdefault('properties', {})
             # If this element has a type, it needs to be an item in the schema
             # If no type, but element is not part of sequences - add default type of string
             if not element_type and (element.getparent().xpath('local-name()') == 'complexType'):
                 element_type = 'string'
-            
+
             if element_type:
                 try:
                     schema['properties'][element_name] = self.type_extensions[element_type]
@@ -82,7 +81,7 @@ class XSDParser:
                 # If min occurs or nillable is set, then make this element required
                 if min_occurs > 0 or nillable:
                     schema.setdefault('required', []).append(element_name)
-                schema['properties'][element_name] = OrderedDict()
+                schema['properties'][element_name] = {}
                 # Update schema pointer to use the nested element
                 # This allows us to build the tree
                 schema = schema['properties'][element_name]
@@ -90,9 +89,9 @@ class XSDParser:
             element_ref = element.attrib.get('ref')
             if element_ref:
                 element_name = element_ref[element_ref.find(':')+1:]
-                schema.setdefault('properties', OrderedDict())
+                schema.setdefault('properties', {})
                 schema['properties'][element_name] = {'$ref':'#/components/schemas/'+element_name}
-            
+
         # Does this element have any element descendants?
         # If does, recursively call function
         if element.findall(".//xs:element", namespaces=self.namespaces):
@@ -121,7 +120,7 @@ class XSDParser:
         Main entry point - convert the XSD file to
         :return:
         """
-        schema = OrderedDict()
+        schema = {}
         # Starting point: all elements in the root of the document
         # This allows us to exclude complexType used as named types (e.g. tests/person.xsd)
         for element in self.root.findall("xs:element", namespaces=self.namespaces):
